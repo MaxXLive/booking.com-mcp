@@ -1,14 +1,14 @@
 import sys
 import json
 import logging
-from booking import search, click_element, scrape_current, close_browser, view_hotel
+from booking import search, click_element, scrape_current, close_browser, view_hotel, show_on_map
 
 logging.basicConfig(filename='mcp_server.log', level=logging.INFO)
 
 TOOLS = [
     {
         "name": "search_hotels",
-        "description": "Search for hotels on Booking.com. Returns live pricing and availability. Browser stays open for further interaction. Use EITHER fixed dates (checkin+checkout) OR flexible dates (nights+months) OR date-range search (nights+earliest_date+latest_date). Date-range mode searches ALL possible check-in dates and aggregates results with price comparison across dates.\n\nIMPORTANT NOTES FOR AGENT:\n- 'beachfront' is a strict tag: only properties DIRECTLY on the beach. Many properties 50-100m away won't appear. If user says 'near the beach', consider omitting beachfront filter and using max_distance instead.\n- 'max_distance' measures from CITY CENTER, not from the beach! A property can be 2km from center but right on the beach. In beach towns, don't rely on distance alone.\n- 'entire_home' is a superset that includes apartments, villas, holiday homes. Prefer this over 'apartment' alone when user wants a vacation rental/Ferienwohnung.\n- 'min_rating' hides new properties without enough reviews. Consider omitting for small/new places.\n- 'sort=price' sorts by cheapest room type which may be a single room unsuitable for groups. For groups, 'popularity' or 'rating_and_price' often gives better results.\n- 'free_cancellation' may hide properties that DO offer free cancellation at a higher price tier but show non-refundable as default.\n- When in doubt about filters, run a broader search first. It's better to show more results than to miss good options. Ask the user to narrow down if too many results.",
+        "description": "Search for hotels on Booking.com. Returns live pricing and availability. Browser stays open for further interaction. Use EITHER fixed dates (checkin+checkout) OR flexible dates (nights+months) OR date-range search (nights+earliest_date+latest_date). Date-range mode searches ALL possible check-in dates and aggregates results with price comparison across dates.\n\nIMPORTANT NOTES FOR AGENT:\n- Unavailable properties are always hidden by default (oos=1 filter).\n- 'beachfront' is a strict tag: only properties DIRECTLY on the beach. Many properties 50-100m away won't appear. If user says 'near the beach', consider omitting beachfront filter and using max_distance instead.\n- 'max_distance' measures from CITY CENTER, not from the beach! A property can be 2km from center but right on the beach. In beach towns, don't rely on distance alone.\n- 'entire_home' is a superset that includes apartments, villas, holiday homes. Prefer this over 'apartment' alone when user wants a vacation rental/Ferienwohnung.\n- 'min_rating' hides new properties without enough reviews. Consider omitting for small/new places.\n- 'sort=price' sorts by cheapest room type which may be a single room unsuitable for groups. For groups, 'popularity' or 'rating_and_price' often gives better results.\n- 'free_cancellation' may hide properties that DO offer free cancellation at a higher price tier but show non-refundable as default.\n- When in doubt about filters, run a broader search first. It's better to show more results than to miss good options. Ask the user to narrow down if too many results.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -79,6 +79,11 @@ TOOLS = [
             },
             "required": ["url"]
         }
+    },
+    {
+        "name": "show_on_map",
+        "description": "Switch the current search results to map view so the user can see hotel locations visually. Call after a search to show results on the map.",
+        "inputSchema": { "type": "object", "properties": {} }
     }
 ]
 
@@ -136,6 +141,8 @@ def handle_request(req):
                 data = close_browser()
             elif name == "view_hotel":
                 data = view_hotel(args["url"])
+            elif name == "show_on_map":
+                data = show_on_map()
             else:
                 return {
                     "jsonrpc": "2.0", "id": msg_id,

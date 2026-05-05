@@ -352,6 +352,27 @@ def close_browser():
     return {"status": "browser closed"}
 
 
+def show_on_map():
+    """Open current search results in map view in a new tab."""
+    global _page, _browser
+    if not _page:
+        return {"error": "No browser session. Run search first."}
+    try:
+        current_url = _page.url
+        if 'map=1' not in current_url:
+            separator = '&' if '?' in current_url else '?'
+            map_url = current_url + separator + 'map=1'
+        else:
+            map_url = current_url
+        map_page = _browser.new_page(viewport={"width": 960, "height": 960})
+        map_page.goto(map_url, wait_until="domcontentloaded")
+        _dismiss_popups(map_page)
+        time.sleep(3)
+        return {"status": "Map view opened in new tab. User can browse hotels on the map."}
+    except Exception as e:
+        return {"error": f"Could not open map: {str(e)}"}
+
+
 def view_hotel(url):
     """Open hotel detail page in a new tab and scrape key information."""
     global _browser
