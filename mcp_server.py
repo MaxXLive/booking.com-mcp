@@ -14,7 +14,7 @@ TOOLS = [
             "properties": {
                 "location": { "type": "string", "description": "City or Location (e.g. Faliraki Rhodes, Bangkok, Paris)" },
                 "adults": { "type": "integer", "description": "Number of adults (default 1)" },
-                "rooms": { "type": "integer", "description": "Number of rooms to book (default 1). Use for groups needing multiple rooms/units at same property (e.g. 3 studio apartments). Different from 'bedrooms' which filters for a single large unit." },
+                "rooms": { "type": "integer", "description": "Number of rooms to book (default 1). Use when user says 'X Zimmer' or 'X Betten' for a group - books X separate units at same property (e.g. 3 studios). This is what most group travelers need. Different from 'bedrooms'." },
                 "checkin": { "type": "string", "description": "Fixed check-in date (YYYY-MM-DD). Use with checkout." },
                 "checkout": { "type": "string", "description": "Fixed check-out date (YYYY-MM-DD). Use with checkin." },
                 "nights": { "type": "integer", "description": "Number of nights for flexible search. Use with months." },
@@ -38,7 +38,7 @@ TOOLS = [
                     "description": "Facility filters. Options: pool, private_pool, parking, spa, wifi, jacuzzi, terrace, beachfront, pets_allowed, adults_only. IMPORTANT: 'pool' = shared/hotel pool. 'private_pool' = pool in the room/suite. Some properties only have private pools (not tagged as 'pool'), so they won't appear with just 'pool' filter. Additionally, some properties offer a private pool only in specific room types (e.g. one suite) but are NOT tagged with any pool facility at all. When user wants any kind of pool, consider running a broader search without pool filter and mentioning that some results may not have a pool."
                 },
                 "free_cancellation": { "type": "boolean", "description": "Only show properties with free cancellation. NOTE: May hide properties that offer free cancellation at a higher price tier but show non-refundable as cheapest." },
-                "bedrooms": { "type": "integer", "description": "Minimum number of bedrooms in a SINGLE unit (villa/apartment). Use for finding one large property. Different from 'rooms' which books multiple separate units." },
+                "bedrooms": { "type": "integer", "description": "Minimum number of bedrooms in a SINGLE large unit (villa/apartment). Only use when user explicitly wants ONE property with multiple bedrooms (e.g. 'Villa mit 3 Schlafzimmern'). Do NOT use when user says 'X Zimmer/Betten' for a group - that's 'rooms'." },
                 "max_distance": { "type": "integer", "description": "Maximum distance from search center in meters (e.g. 1000, 3000, 5000). NOTE: Distance is from CITY CENTER, not from beach/attractions. In beach towns center ≠ beach." },
                 "sort": {
                     "type": "string",
