@@ -156,10 +156,12 @@ def _single_search(page, location, adults, checkin, checkout, nflt, sort, rooms=
     except:
         return []
 
-    # Scroll down to trigger infinite scroll and load more results
-    for _ in range(3):
-        page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-        time.sleep(1.5)
+    # Only scroll if there are 25 cards (full page = likely more results)
+    cards = page.query_selector_all('[data-testid="property-card"]')
+    if len(cards) >= 25:
+        for _ in range(3):
+            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            time.sleep(1.5)
 
     return _scrape_results(page, checkin=checkin, checkout=checkout)
 
@@ -204,10 +206,11 @@ def search(location, adults=1, rooms=1, checkin=None, checkout=None,
             page.wait_for_selector('[data-testid="property-card"]', timeout=15000)
         except:
             return {"error": "Timeout or no results found"}
-        # Scroll to load more results
-        for _ in range(3):
-            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            time.sleep(1.5)
+        cards = page.query_selector_all('[data-testid="property-card"]')
+        if len(cards) >= 25:
+            for _ in range(3):
+                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                time.sleep(1.5)
         return {"hotels": _scrape_results(page, checkin=checkin, checkout=checkout)}
 
     # MODE 3: Flexible (ltfd) - legacy fallback
@@ -231,9 +234,11 @@ def search(location, adults=1, rooms=1, checkin=None, checkout=None,
             page.wait_for_selector('[data-testid="property-card"]', timeout=15000)
         except:
             return {"error": "Timeout or no results found"}
-        for _ in range(3):
-            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            time.sleep(1.5)
+        cards = page.query_selector_all('[data-testid="property-card"]')
+        if len(cards) >= 25:
+            for _ in range(3):
+                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                time.sleep(1.5)
         return {"hotels": _scrape_results(page)}
 
     return {"error": "Provide checkin+checkout, nights+earliest_date+latest_date, or nights+months"}
