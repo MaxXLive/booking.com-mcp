@@ -26,7 +26,7 @@ TOOLS = [
                 "latest_date": { "type": "string", "description": "Latest possible check-out date (YYYY-MM-DD). Use with nights + earliest_date for date-range multi-search." },
                 "property_types": {
                     "type": "array", "items": { "type": "string" },
-                    "description": "Filter by property type. Options: hotel, apartment, resort, villa, holiday_home, bnb, guesthouse, entire_home. NOTE: 'entire_home' is a superset including apartments, villas, holiday homes. Prefer this when user wants any vacation rental/Ferienwohnung."
+                    "description": "Filter by property type. Options: hotel, apartment, resort, villa, holiday_home, bnb, guesthouse, entire_home. NOTE: 'entire_home' is a superset including apartments, villas, holiday homes. ALWAYS use 'entire_home' when user says 'Ferienwohnung', 'Ferienhaus', 'Ferienwohnungen/häuser', or any vacation rental term. Do NOT use 'apartment' or 'villa' alone as that excludes the other types."
                 },
                 "min_rating": { "type": "integer", "description": "Minimum review score (6, 7, 8, or 9). NOTE: Hides new properties without enough reviews." },
                 "meals": {
