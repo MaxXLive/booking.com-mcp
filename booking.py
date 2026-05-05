@@ -353,17 +353,19 @@ def close_browser():
 
 
 def view_hotel(url):
-    """Open hotel detail page and scrape key information."""
-    page = _ensure_browser()
-    page.goto(url, wait_until="domcontentloaded")
-    _dismiss_popups(page)
+    """Open hotel detail page in a new tab and scrape key information."""
+    global _browser
+    _ensure_browser()
+    hotel_page = _browser.new_page(viewport={"width": 960, "height": 960})
+    hotel_page.goto(url, wait_until="domcontentloaded")
+    _dismiss_popups(hotel_page)
     time.sleep(3)
 
     info = {"url": url}
 
     # Hotel name
     try:
-        name_el = page.query_selector('h2.pp-header__title') or page.query_selector('[data-testid="title"]')
+        name_el = hotel_page.query_selector('h2.pp-header__title') or hotel_page.query_selector('[data-testid="title"]')
         if name_el:
             info["name"] = name_el.inner_text().strip()
     except:
@@ -371,7 +373,7 @@ def view_hotel(url):
 
     # Rating
     try:
-        rating_el = page.query_selector('[data-testid="review-score-component"]')
+        rating_el = hotel_page.query_selector('[data-testid="review-score-component"]')
         if rating_el:
             info["rating"] = rating_el.inner_text().strip().replace('\n', ' ')
     except:
@@ -379,7 +381,7 @@ def view_hotel(url):
 
     # Address
     try:
-        addr_el = page.query_selector('[data-node_tt_id="location_score_tooltip"]') or page.query_selector('.hp_address_subtitle')
+        addr_el = hotel_page.query_selector('[data-node_tt_id="location_score_tooltip"]') or hotel_page.query_selector('.hp_address_subtitle')
         if addr_el:
             info["address"] = addr_el.inner_text().strip()
     except:
@@ -387,7 +389,7 @@ def view_hotel(url):
 
     # Description
     try:
-        desc_el = page.query_selector('[data-testid="property-description"]') or page.query_selector('#property_description_content')
+        desc_el = hotel_page.query_selector('[data-testid="property-description"]') or hotel_page.query_selector('#property_description_content')
         if desc_el:
             info["description"] = desc_el.inner_text().strip()[:500]
     except:
@@ -395,7 +397,7 @@ def view_hotel(url):
 
     # Facilities
     try:
-        facility_els = page.query_selector_all('[data-testid="property-most-popular-facilities-wrapper"] span')
+        facility_els = hotel_page.query_selector_all('[data-testid="property-most-popular-facilities-wrapper"] span')
         if facility_els:
             facilities = list(dict.fromkeys(f.inner_text().strip() for f in facility_els if f.inner_text().strip()))
             info["top_facilities"] = facilities
@@ -404,9 +406,9 @@ def view_hotel(url):
 
     # Room types and prices (scroll to table)
     try:
-        page.evaluate("document.querySelector('#hprt-table')?.scrollIntoView()")
+        hotel_page.evaluate("document.querySelector('#hprt-table')?.scrollIntoView()")
         time.sleep(1)
-        room_rows = page.query_selector_all('tr.js-rt-block-row, [data-testid="availability-row"]')
+        room_rows = hotel_page.query_selector_all('tr.js-rt-block-row, [data-testid="availability-row"]')
         rooms = []
         seen = set()
         for row in room_rows[:10]:
