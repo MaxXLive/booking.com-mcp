@@ -4,3 +4,5 @@ __pycache__/
 .DS_Store
 mcp_server.log
 node_modules/
+package.json
+package-lock.json
