@@ -1,7 +1,7 @@
 import sys
 import json
 import logging
-from booking import search, click_element, scrape_current, close_browser
+from booking import search, click_element, scrape_current, close_browser, view_hotel
 
 logging.basicConfig(filename='mcp_server.log', level=logging.INFO)
 
@@ -68,6 +68,17 @@ TOOLS = [
         "name": "close_browser",
         "description": "Close the Booking.com browser session when done.",
         "inputSchema": { "type": "object", "properties": {} }
+    },
+    {
+        "name": "view_hotel",
+        "description": "Open a hotel's detail page in the browser and return key info (description, facilities, room types, prices). Use when the user wants to compare hotels, see photos, or get more details. The browser stays open so the user can browse manually.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "url": { "type": "string", "description": "The hotel's Booking.com URL (from search results)" }
+            },
+            "required": ["url"]
+        }
     }
 ]
 
@@ -123,6 +134,8 @@ def handle_request(req):
                 data = scrape_current()
             elif name == "close_browser":
                 data = close_browser()
+            elif name == "view_hotel":
+                data = view_hotel(args["url"])
             else:
                 return {
                     "jsonrpc": "2.0", "id": msg_id,

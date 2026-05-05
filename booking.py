@@ -346,6 +346,89 @@ def close_browser():
     _playwright = None
     return {"status": "browser closed"}
 
+
+def view_hotel(url):
+    """Open hotel detail page and scrape key information."""
+    page = _ensure_browser()
+    page.goto(url, wait_until="domcontentloaded")
+    _dismiss_popups(page)
+    time.sleep(3)
+
+    info = {"url": url}
+
+    # Hotel name
+    try:
+        name_el = page.query_selector('h2.pp-header__title') or page.query_selector('[data-testid="title"]')
+        if name_el:
+            info["name"] = name_el.inner_text().strip()
+    except:
+        pass
+
+    # Rating
+    try:
+        rating_el = page.query_selector('[data-testid="review-score-component"]')
+        if rating_el:
+            info["rating"] = rating_el.inner_text().strip().replace('\n', ' ')
+    except:
+        pass
+
+    # Address
+    try:
+        addr_el = page.query_selector('[data-node_tt_id="location_score_tooltip"]') or page.query_selector('.hp_address_subtitle')
+        if addr_el:
+            info["address"] = addr_el.inner_text().strip()
+    except:
+        pass
+
+    # Description
+    try:
+        desc_el = page.query_selector('[data-testid="property-description"]') or page.query_selector('#property_description_content')
+        if desc_el:
+            info["description"] = desc_el.inner_text().strip()[:500]
+    except:
+        pass
+
+    # Facilities
+    try:
+        facility_els = page.query_selector_all('[data-testid="property-most-popular-facilities-wrapper"] span')
+        if facility_els:
+            facilities = list(dict.fromkeys(f.inner_text().strip() for f in facility_els if f.inner_text().strip()))
+            info["top_facilities"] = facilities
+    except:
+        pass
+
+    # Room types and prices (scroll to table)
+    try:
+        page.evaluate("document.querySelector('#hprt-table')?.scrollIntoView()")
+        time.sleep(1)
+        room_rows = page.query_selector_all('tr.js-rt-block-row, [data-testid="availability-row"]')
+        rooms = []
+        seen = set()
+        for row in room_rows[:10]:
+            try:
+                room_name_el = row.query_selector('.hprt-roomtype-icon-link, [data-testid="room-type-link"]')
+                price_el = row.query_selector('.bui-price-display__value, [data-testid="price-and-discounted-price"]')
+                room_name = room_name_el.inner_text().strip() if room_name_el else None
+                price = price_el.inner_text().strip() if price_el else None
+                if room_name and room_name not in seen:
+                    seen.add(room_name)
+                    room_info = {"room_type": room_name}
+                    if price:
+                        room_info["price"] = price
+                    occupancy_el = row.query_selector('.hprt-occupancy-occupancy-info, [data-testid="occupancy"]')
+                    if occupancy_el:
+                        room_info["occupancy"] = occupancy_el.inner_text().strip()
+                    rooms.append(room_info)
+            except:
+                continue
+        if rooms:
+            info["rooms"] = rooms
+    except:
+        pass
+
+    info["note"] = "Browser is open on the hotel page. User can browse photos, rooms, and map manually."
+    return info
+
 if __name__ == "__main__":
     if len(sys.argv) < 5:
         print(json.dumps({"error": "Usage: booking.py LOCATION CHECKIN CHECKOUT ADULTS"}))
