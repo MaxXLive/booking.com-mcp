@@ -37,8 +37,10 @@ SORT_OPTIONS = {
 }
 
 
+_context = None
+
 def _ensure_browser():
-    global _playwright, _browser, _page
+    global _playwright, _browser, _page, _context
     if _browser and _browser.is_connected():
         return _page
     _playwright = sync_playwright().start()
@@ -46,10 +48,8 @@ def _ensure_browser():
         headless=False,
         args=["--window-size=960,1080", "--window-position=0,0"],
     )
-    _page = _browser.new_page(viewport={"width": 960, "height": 960})
-    _page.set_extra_http_headers({
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    })
+    _context = _browser.new_context(viewport={"width": 960, "height": 960}, user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+    _page = _context.new_page()
     return _page
 
 def _dismiss_popups(page):
@@ -341,12 +341,13 @@ def scrape_current():
     return {"hotels": _scrape_results(_page)}
 
 def close_browser():
-    global _playwright, _browser, _page
+    global _playwright, _browser, _page, _context
     if _browser:
         _browser.close()
     if _playwright:
         _playwright.stop()
     _browser = None
+    _context = None
     _page = None
     _playwright = None
     return {"status": "browser closed"}
@@ -354,7 +355,7 @@ def close_browser():
 
 def show_on_map():
     """Open current search results in map view in a new tab."""
-    global _page, _browser
+    global _page, _context
     if not _page:
         return {"error": "No browser session. Run search first."}
     try:
@@ -364,7 +365,7 @@ def show_on_map():
             map_url = current_url + separator + 'map=1'
         else:
             map_url = current_url
-        map_page = _browser.new_page(viewport={"width": 960, "height": 960})
+        map_page = _context.new_page()
         map_page.goto(map_url, wait_until="domcontentloaded")
         _dismiss_popups(map_page)
         time.sleep(3)
@@ -377,7 +378,7 @@ def view_hotel(url):
     """Open hotel detail page in a new tab and scrape key information."""
     global _browser
     _ensure_browser()
-    hotel_page = _browser.new_page(viewport={"width": 960, "height": 960})
+    hotel_page = _context.new_page()
     hotel_page.goto(url, wait_until="domcontentloaded")
     _dismiss_popups(hotel_page)
     time.sleep(3)
